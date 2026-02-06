@@ -1,0 +1,27 @@
+# -*- mode: Makefile -*-
+
+PYTTI_DIR ?= $(CURDIR)/pytti
+ifeq (,$(wildcard $(PYTTI_DIR)/package.json))
+INSTALL_PYTTI := $(shell \
+	>/dev/null command -v corepack || { \
+		>&2 echo "[ERR ]" "Please install Homebrew by visiting https://brew.sh"; \
+		>&2 echo "[ERR ]" "and then install corepack by running 'brew install corepack' ."; \
+		exit 1; \
+	}; \
+	if test -e pnpm-lock.yaml; then \
+		>&2 corepack pnpm i --frozen-lockfile; \
+	elif test -e package-lock.json; then \
+		>&2 corepack npm ci; \
+	else \
+		>&2 CI= corepack pnpm i; \
+	fi; \
+	>/dev/null ln -sf node_modules/pytti; \
+	echo "true"; \
+)
+ifneq (true,$(INSTALL_PYTTI))
+$(error Failed to install pytti.)
+endif
+ifneq (,$(filter undefine,$(.FEATURES)))
+undefine INSTALL_PYTTI
+endif
+endif
